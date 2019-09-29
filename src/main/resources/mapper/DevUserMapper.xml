@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.applnfoSystem.dao.DevUserMapper">
+
+    <!--app开发者平台登录验证-->
+    <select id="The_login" resultType="cn.applnfoSystem.pojo.DevUser">
+     SELECT * FROM dev_user WHERE devCode=#{devCode}
+    </select>
+
+</mapper>
