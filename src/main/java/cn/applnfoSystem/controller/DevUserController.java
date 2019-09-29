@@ -49,4 +49,8 @@ public class DevUserController {
         return "developer/appinfolist";
     }
 
+    @RequestMapping(value = "add")
+    public  String addapp(){
+        return "developer/appinfoadd";
+    }
 }
