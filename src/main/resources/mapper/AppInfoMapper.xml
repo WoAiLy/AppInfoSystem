@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.applnfoSystem.dao.AppInfoMapper">
+    <select id="getAppInfoList" resultType="AppInfo">
+        select a.id,a.softwareName,a.APKName,a.supportROM,a.softwareSize,a.devId,
+        (select devName from dev_user where id=a.devId) as devName,
+        a.status,
+        (select valueName from data_dictionary d where a.status=d.valueId and d.typeCode='APP_STATUS') as stayusName,
+        a.flatformId,
+        (select valueName from data_dictionary d where a.flatformId=d.valueId and d.typeCode='APP_FLATFORM') as flatformName,
+        a.categroyLevel1,
+        (select categroyName from app_category c where c.id=a.categroyLevel1) as categroyLevel1Name,
+        a.categroyLevel2,
+        (select categroyName from app_category c where c.id=a.categroyLevel2) as categroyLevel2Name,
+        a.categroyLevel3,
+        (select categroyName from app_category c where c.id=a.categroyLevel3) as categroyLevel3Name,
+        a.downloads,
+        a.onSaleDate,
+        a.versionId,
+        (select  v.versionNo from app_version v where v.id=a.versionId) as versionNo from  app_info a
+        <trim prefix="where" prefixOverrides="and | or">
+            <if test="softwareName!=null and softwareName!=''">
+                and a.softwareName like CONCAT('%',#{softwareName},'%')
+            </if>
+            <if test="status!=null">
+                and a.status=#{status}
+            </if>
+            <if test="categroyLevel1!=null">
+                and a.categroyLevel1=#{categroyLevel1}
+            </if>
+            <if test="categroyLevel2!=null">
+                and a.categroyLevel2=#{categroyLevel2}
+            </if>
+            <if test="categroyLevel3!=null">
+                and a.categroyLevel3=#{categroyLevel3}
+            </if>
+            <if test="flatformId!=null">
+                and a.flatformId=#{flatformId}
+            </if>
+            <if test="devId!=null">
+                and a.devId=#{devId}
+            </if>
+        </trim>
+        order by creationDate desc limit #{from},#{pageSize}
+    </select>
+</mapper>
