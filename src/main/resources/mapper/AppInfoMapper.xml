@@ -44,4 +44,30 @@
         </trim>
         order by creationDate desc limit #{from},#{pageSize}
     </select>
+    <select id="getAppInfoCount" resultType="Int">
+        select count(*) from app_info a
+        <trim prefix="where" prefixOverrides="and | or">
+            <if test="softwareName!=null and softwareName!=''">
+                and a.softwareName like CONCAT('%',#{softwareName},'%')
+            </if>
+            <if test="status!=null">
+                and a.status=#{status}
+            </if>
+            <if test="categroyLevel1!=null">
+                and a.categroyLevel1=#{categroyLevel1}
+            </if>
+            <if test="categroyLevel2!=null">
+                and a.categroyLevel2=#{categroyLevel2}
+            </if>
+            <if test="categroyLevel3!=null">
+                and a.categroyLevel3=#{categroyLevel3}
+            </if>
+            <if test="flatformId!=null">
+                and a.flatformId=#{flatformId}
+            </if>
+            <if test="devId!=null">
+                and a.devId=#{devId}
+            </if>
+        </trim>
+    </select>
 </mapper>
