@@ -6,6 +6,7 @@ import org.apache.ibatis.annotations.Param;
 import java.util.List;
 
 public interface AppInfoMapper {
+
     public int add(AppInfo appInfo) throws Exception;
 
     public int modify(AppInfo appInfo)throws Exception;
@@ -59,4 +60,5 @@ public interface AppInfoMapper {
      * @throws Exception
      */
     public int updateStatus(@Param(value="status")Integer status,@Param(value="id")Integer id)throws Exception;
+
 }

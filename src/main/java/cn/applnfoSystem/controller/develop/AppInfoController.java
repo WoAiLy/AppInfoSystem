@@ -5,13 +5,18 @@ import cn.applnfoSystem.pojo.AppCategory;
 import cn.applnfoSystem.pojo.AppInfo;
 import cn.applnfoSystem.pojo.DataDictionary;
 import cn.applnfoSystem.pojo.DevUser;
-import cn.applnfoSystem.service.AppInfoService;
+import cn.applnfoSystem.service.DevUser.AppCategoryService;
+import cn.applnfoSystem.service.DevUser.AppInfoService;
+import cn.applnfoSystem.service.DevUser.DataDictionaryService;
 import cn.applnfoSystem.tools.Constants;
+import cn.applnfoSystem.tools.PageSupport;
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import sun.security.krb5.internal.APOptions;
 
 import javax.annotation.Resource;
@@ -26,6 +31,10 @@ public class AppInfoController {
 
     @Resource
     private AppInfoService appInfoService;
+    @Resource
+    private AppCategoryService appCategoryService;
+    @Resource
+    private DataDictionaryService dataDictionaryService;
 
     public String getAppInfoList(Model model, HttpSession session, @RequestParam(value = "querySoftwareName",required = false)String _querySoftwareName,
                                  @RequestParam(value = "queryStatus",required = false)String _queryStatus,
@@ -85,19 +94,86 @@ public class AppInfoController {
         if (queryFlatformId!=null && !("").equals(queryFlatformId)){
             queryFlatformId=Integer.parseInt(_queryFlatformId);
         }
-        //总数
+        //总数量
         int totalCount=0;
         try{
             totalCount=appInfoService.getAppInfoCount(querySoftwareName,queryStatus,queryCategoryLevel1,queryCategoryLevel2,queryCategoryLevel3,queryFlatformId,devId);
-            statusList=this.getDataDictionaryList(_queryStatus);
+
         }catch (Exception e){
             e.printStackTrace();
         }
-        return "";
-    }
-    public List<DataDictionary> getDataDictionaryList(String status){
-        List<DataDictionary> list=null;
-        return list;
+        //总页数
+        PageSupport pages = new PageSupport();
+        pages.setCurrentPageNo(currentPageNo);
+        pages.setPageSize(pageSize);
+        pages.setTotalCount(totalCount);
+        int totalPageCount = pages.getTotalPageCount();
+        //控制首页和尾页
+        if(currentPageNo < 1){
+            currentPageNo = 1;
+        }else if(currentPageNo > totalPageCount){
+            currentPageNo = totalPageCount;
+        }
+        try {
+            appInfoList = appInfoService.getAppInfoList(querySoftwareName, queryStatus, queryCategoryLevel1, queryCategoryLevel2, queryCategoryLevel3, queryFlatformId, devId, currentPageNo, pageSize);
+            statusList = this.getDataDictionaryList("APP_STATUS");
+            flatFormList = this.getDataDictionaryList("APP_FLATFORM");
+            categoryLevel1List = appCategoryService.getAppCategoryListByParentId(null);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        model.addAttribute("appInfoList", appInfoList);
+        model.addAttribute("statusList", statusList);
+        model.addAttribute("flatFormList", flatFormList);
+        model.addAttribute("categoryLevel1List", categoryLevel1List);
+        model.addAttribute("pages", pages);
+        model.addAttribute("queryStatus", queryStatus);
+        model.addAttribute("querySoftwareName", querySoftwareName);
+        model.addAttribute("queryCategoryLevel1", queryCategoryLevel1);
+        model.addAttribute("queryCategoryLevel2", queryCategoryLevel2);
+        model.addAttribute("queryCategoryLevel3", queryCategoryLevel3);
+        model.addAttribute("queryFlatformId", queryFlatformId);
 
+        //二级分类列表和三级分类列表---回显
+        if(queryCategoryLevel2 != null && !queryCategoryLevel2.equals("")){
+            categoryLevel2List = getCategoryList(queryCategoryLevel1.toString());
+            model.addAttribute("categoryLevel2List", categoryLevel2List);
+        }
+        if(queryCategoryLevel3 != null && !queryCategoryLevel3.equals("")){
+            categoryLevel3List = getCategoryList(queryCategoryLevel2.toString());
+            model.addAttribute("categoryLevel3List", categoryLevel3List);
+        }
+        return "developer/appinfolist";
+    }
+    public List<DataDictionary> getDataDictionaryList(String typeCode){
+        List<DataDictionary> dataDictionaryList = null;
+        try {
+            dataDictionaryList = dataDictionaryService.getDataDictionaryList(typeCode);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return dataDictionaryList;
+    }
+    /**
+     * 根据parentId查询出相应的分类级别列表
+     * @param pid
+     * @return
+     */
+    @RequestMapping(value="/categorylevellist.json",method= RequestMethod.GET)
+    @ResponseBody
+    public List<AppCategory> getAppCategoryList (@RequestParam String pid){
+        logger.debug("getAppCategoryList pid ============ " + pid);
+        if(pid.equals("")) pid = null;
+        return getCategoryList(pid);
+    }
+
+    public List<AppCategory> getCategoryList (String pid){
+        List<AppCategory> categoryLevelList = null;
+        try {
+            categoryLevelList = appCategoryService.getAppCategoryListByParentId(pid==null?null:Integer.parseInt(pid));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return categoryLevelList;
     }
 }
